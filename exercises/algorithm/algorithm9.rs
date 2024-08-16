@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -23,7 +22,7 @@ where
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
             count: 0,
-            items: vec![T::default()],
+            items: Vec::new(),
             comparator,
         }
     }
@@ -38,6 +37,19 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.insert(self.count, value);
+        self.count += 1;
+        let mut idx = self.count;
+        while idx != 1 {
+            let parent = self.parent_idx(idx);
+            if !(self.comparator)(&self.items[parent - 1], &self.items[idx - 1]) {
+                //std::mem::swap(&mut self.items[parent - 1], &mut self.items[idx - 1]);
+                self.items.swap(parent - 1, idx - 1);
+                idx = parent;
+            } else {
+                break;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -48,6 +60,8 @@ where
         self.left_child_idx(idx) <= self.count
     }
 
+    fn full_present(&self, idx:usize) -> bool { self.right_child_idx(idx) <= self.count }
+
     fn left_child_idx(&self, idx: usize) -> usize {
         idx * 2
     }
@@ -56,7 +70,7 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
+    fn smallest_child_idx(&self, _idx: usize) -> usize {
         //TODO
 		0
     }
@@ -77,7 +91,7 @@ where
     }
 }
 
-impl<T> Iterator for Heap<T>
+impl<T: Clone> Iterator for Heap<T>
 where
     T: Default,
 {
@@ -85,7 +99,33 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+        self.count -= 1;
+        if self.count != 0 {
+            self.items.swap(0, self.count);
+            let mut idx = 1;
+            while self.children_present(idx) {
+                let left_idx = self.left_child_idx(idx);
+                let mut sink_idx = idx;
+                if !(self.comparator)(&self.items[sink_idx - 1], &self.items[left_idx - 1]) {
+                    sink_idx = left_idx;
+                }
+                if self.full_present(idx) {
+                    let right_idx = self.right_child_idx(idx);
+                    if !(self.comparator)(&self.items[sink_idx - 1], &self.items[right_idx - 1]) {
+                        sink_idx = right_idx
+                    }
+                }
+                if sink_idx == idx {
+                    break;
+                }
+                self.items.swap(idx - 1, sink_idx - 1);
+                idx = sink_idx;
+            }
+        }
+        Some(self.items[self.count].clone())
     }
 }
 

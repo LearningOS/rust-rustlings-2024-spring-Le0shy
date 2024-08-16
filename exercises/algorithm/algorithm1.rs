@@ -2,13 +2,12 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct Node<T> {
     val: T,
     next: Option<NonNull<Node<T>>>,
@@ -22,19 +21,23 @@ impl<T> Node<T> {
         }
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct LinkedList<T> {
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
+/*
+start: Node<T>
+end: Node<T>
+head and tail is on the stack
+*/
 
 impl<T> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
-
 impl<T> LinkedList<T> {
     pub fn new() -> Self {
         Self {
@@ -43,6 +46,9 @@ impl<T> LinkedList<T> {
             end: None,
         }
     }
+}
+
+impl<T: PartialOrd + Clone + std::cmp::PartialOrd> LinkedList<T> {
 
     pub fn add(&mut self, obj: T) {
         let mut node = Box::new(Node::new(obj));
@@ -69,15 +75,43 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(mut list_a:LinkedList<T>,mut list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merged_list = LinkedList::<T>::new();
+        let mut a_current = list_a.start;
+        let mut b_current = list_b.start;
+
+        while a_current.is_some() || b_current.is_some() {
+            if a_current.is_none() {
+                merged_list.add(unsafe{(*b_current.unwrap().as_ptr()).val.clone()});
+                unsafe {
+                    b_current = (*b_current.unwrap().as_ptr()).next;
+                }
+                continue;
+            }
+            if b_current.is_none() {
+                merged_list.add(unsafe{(*a_current.unwrap().as_ptr()).val.clone()});
+                unsafe {
+                    a_current = (*a_current.unwrap().as_ptr()).next;
+                }
+                continue;
+            }
+            unsafe {
+                let a_val = (*a_current.unwrap().as_ptr()).val.clone();
+                let b_val = (*b_current.unwrap().as_ptr()).val.clone();
+                if a_val <= b_val {
+                    merged_list.add(a_val);
+                    a_current = (*a_current.unwrap().as_ptr()).next;
+                } else {
+                    merged_list.add(b_val);
+                    b_current = (*b_current.unwrap().as_ptr()).next;
+                }
+            }
         }
-	}
+
+        merged_list
+    }
 }
 
 impl<T> Display for LinkedList<T>

@@ -1,12 +1,26 @@
 /*
 	sort
-	This problem requires you to implement a sorting algorithm
+ 	This problem requires you to implement a sorting algorithm
 	you can use bubble sorting, insertion sorting, heap sorting, etc.
 */
-// I AM NOT DONE
 
-fn sort<T>(array: &mut [T]){
+use std::cmp::min;
+
+fn sort<T:Ord>(array: &mut [T]){
 	//TODO
+    for i in 0.. array.len() - 1 {
+        let mut min = &array[i];
+        let mut min_idx = i;
+        let mut j = i + 1;
+        while j < array.len() {
+            if array[j] < *min {
+                min_idx = j;
+                min = &array[j];
+            }
+            j += 1;
+        }
+        array.swap(i, min_idx);
+    }
 }
 #[cfg(test)]
 mod tests {
